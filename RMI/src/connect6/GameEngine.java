@@ -8,6 +8,7 @@ import java.util.List;
 
 public interface GameEngine extends Remote {
     String getId() throws RemoteException;
+    List getList() throws RemoteException;
     Boolean makeTurn(Pair<Integer, Integer> point, String id) throws RemoteException;
     String didAnyoneWin(String id) throws RemoteException;
     List<List<Integer>> waitForOpponentTurn(String id) throws RemoteException;

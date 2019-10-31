@@ -12,7 +12,6 @@ public class Server {
     public static void main(String[] args) {
         try {
             GameEngineImpl obj = new GameEngineImpl();
-            obj.makeTurn(new Pair<>(1,3), "BLACK");
             GameEngine stub = (GameEngine) UnicastRemoteObject.exportObject(obj, 0);
 
             // Bind the remote object's stub in the registry

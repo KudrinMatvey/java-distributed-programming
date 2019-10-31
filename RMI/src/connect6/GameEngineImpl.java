@@ -2,6 +2,7 @@ package connect6;
 
 import javafx.util.Pair;
 
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,6 +62,11 @@ public class GameEngineImpl implements GameEngine {
     }
 
     @Override
+    public List getList() throws RemoteException {
+        return list;
+    }
+
+    @Override
     public Boolean makeTurn(Pair<Integer, Integer> point, String id) {
         synchronized (obj) {
             int x = point.getKey();
@@ -69,10 +75,12 @@ public class GameEngineImpl implements GameEngine {
             if (a != 0) return false;
             if (id.equals(BLACK)) {
                 list.get(x).set(y, BLACK_ID);
+                System.out.println("Player BLACK made his turn on point "+ x +" " + y);
                 winnerId = checkForWin(x, y, BLACK_ID) ? BLACK : null;
                 blackTurnsCount++;
             } else {
                 list.get(x).set(y, WHITE_ID);
+                System.out.println("Player WHITE made his turn on point "+ x +" " + y);
                 winnerId = checkForWin(x, y, WHITE_ID) ? WHITE : null;
                 whiteTurnsCount++;
             }
@@ -92,18 +100,27 @@ public class GameEngineImpl implements GameEngine {
 
         int count = 0;
         for (int y1 = startY; y1 < finishY; y1++) {
-            if (count == 6) return true;
+            if (count == 6) {
+                System.out.println("Player "+ id + " won horizontally "+ (x) +" " + (y1-5) + " to " + (x) +" " + (y1));
+                return true;
+            }
             count = list.get(x).get(y1) == id ? count + 1 : 0;
         }
         count = 0;
         for (int x1 = startX; x1 < finishX; x1++) {
-            if (count == 6) return true;
-            count = list.get(x).get(x1) == id ? count + 1 : 0;
+            if (count == 6) {
+                System.out.println("Player "+ id + " won vertically"+ (x1 - 5) +" " + (y) + " to " + (x1) +" " + (y));
+                return true;
+            }
+            count = list.get(x1).get(y) == id ? count + 1 : 0;
         }
         count = 0;
 
-        for (int xy = startX; xy < finishX; xy++) {
-            if (count == 6) return true;
+        for (int xy = startXY; xy < finishXY; xy++) {
+            if (count == 6) {
+                System.out.println("Player "+ id + " won diagonally "+ (xy - 5) +" " + (xy-5) + " to " + (xy) +" " + (xy));
+                return true;
+            }
             count = list.get(xy).get(xy) == id ? count + 1 : 0;
         }
         count = 0;
@@ -113,6 +130,7 @@ public class GameEngineImpl implements GameEngine {
 
     @Override
     public String didAnyoneWin(String id) {
+        if (winnerId != null) System.err.printf("Player %s won", id);
         return winnerId;
 //        for (int y1 = 0; y1 < 19; y1++) {
 //            for (int x1 = 0; x1 < 19; x1++) {
@@ -135,11 +153,13 @@ public class GameEngineImpl implements GameEngine {
     public List<List<Integer>> waitForOpponentTurn(String id) {
         try {
             if (id.equals(BLACK)) {
-                while (whiteTurnsCount < blackTurnsCount) {
+                System.out.println("Waiting for Player WHITE");
+                while (whiteTurnsCount != blackTurnsCount || winnerId != null) {
                     Thread.sleep(100);
                 }
             } else {
-                while (whiteTurnsCount == blackTurnsCount) {
+                System.out.println("Waiting for Player BLACK");
+                while (whiteTurnsCount + 1 != blackTurnsCount || winnerId != null) {
                     Thread.sleep(100);
                 }
             }
