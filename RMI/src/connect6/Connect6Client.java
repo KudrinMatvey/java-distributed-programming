@@ -1,4 +1,4 @@
-package src.connect6;
+package connect6;
 
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -16,7 +16,9 @@ public class Connect6Client {
             System.out.println(stub);
 
             String response = stub.getId();
-            System.out.println("response:" + response);
+            System.out.println("I am player:" + response);
+
+
 //            System.out.println("response:\nSum="+ stub.summa(190,7));
 
         } catch (Exception e) {
