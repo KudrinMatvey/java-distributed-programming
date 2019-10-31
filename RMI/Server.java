@@ -9,9 +9,14 @@ public class Server implements Hello {
     public Server() {}
 
     public String sayHello() {
-	return "Hello , world";
+		try {
+			Thread.sleep(10000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		return "Hello , world";
     }
-	public int Summa(int a, int b) {
+	public int summa(int a, int b) {
 		return a+b;
 	}
     public static void main(String args[]) {
@@ -21,10 +26,10 @@ public class Server implements Hello {
 	    Hello stub = (Hello) UnicastRemoteObject.exportObject(obj, 0);
 
 	    // Bind the remote object's stub in the registry
-	    Registry registry = LocateRegistry.getRegistry();
+	    Registry registry = LocateRegistry.createRegistry(2020);
 	    registry.bind("Hello", stub);
-
 	    System.err.println("Server ready");
+	    Thread.sleep(Integer.MAX_VALUE);
 	} catch (Exception e) {
 	    System.err.println("Server exception: " + e.toString());
 	    e.printStackTrace();
