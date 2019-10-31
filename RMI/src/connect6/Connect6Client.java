@@ -5,7 +5,6 @@ import javafx.util.Pair;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -30,19 +29,39 @@ public class Connect6Client {
             list = gameEngine.getList();
         }
         while (gameEngine.didAnyoneWin(id) == null) {
+            System.out.println("Waiting for other player ");
             list = gameEngine.waitForOpponentTurn(id);
-            if (gameEngine.didAnyoneWin(id) != null){
-                System.out.println("Player "+ gameEngine.didAnyoneWin(id) + " won");
+            if (gameEngine.didAnyoneWin(id) != null) {
+                System.out.println("Player " + gameEngine.didAnyoneWin(id) + " won");
                 return;
-            };
+            }
             printList(list);
             int x, y;
-            do {
-                System.out.printf("Other player made his turn, make your turn x: ");
+            System.out.print("Other player made his turn, make your turn x: ");
+            x = sc.nextInt();
+            System.out.println("y: ");
+            y = sc.nextInt();
+            while (!gameEngine.makeTurn(makePoint(x, y), id)) {
+                System.out.print("You made an invalid turn, please make another one x: ");
                 x = sc.nextInt();
                 System.out.println("y: ");
                 y = sc.nextInt();
-            } while (!gameEngine.makeTurn(makePoint(x, y), id));
+            }
+            if (gameEngine.didAnyoneWin(id) != null) {
+                System.out.println("Player " + gameEngine.didAnyoneWin(id) + " won");
+                return;
+            }
+            ;
+            System.out.print("You made your first turn, make the second one x: ");
+            x = sc.nextInt();
+            System.out.println("y: ");
+            y = sc.nextInt();
+            while (!gameEngine.makeTurn(makePoint(x, y), id)) {
+                System.out.print("You made an invalid turn, please make another one x: ");
+                x = sc.nextInt();
+                System.out.println("y: ");
+                y = sc.nextInt();
+            }
 
         }
         System.out.printf("Player %s won", gameEngine.didAnyoneWin(id));

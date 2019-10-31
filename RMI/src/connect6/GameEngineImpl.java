@@ -154,12 +154,12 @@ public class GameEngineImpl implements GameEngine {
         try {
             if (id.equals(BLACK)) {
                 System.out.println("Waiting for Player WHITE");
-                while (whiteTurnsCount != blackTurnsCount || winnerId != null) {
+                while (whiteTurnsCount != blackTurnsCount + 1 && winnerId != null) {
                     Thread.sleep(100);
                 }
             } else {
                 System.out.println("Waiting for Player BLACK");
-                while (whiteTurnsCount + 1 != blackTurnsCount || winnerId != null) {
+                while ( whiteTurnsCount + 1 != blackTurnsCount && winnerId != null) {
                     Thread.sleep(100);
                 }
             }
