@@ -68,9 +68,9 @@ public class Connect6Client {
     }
 
     private static Pair<Integer, Integer> makePoint(int x, int y) {
-        if (x >= 0 && x < 19 && y >= 0 && y < 19)
+//        if (x >= 0 && x < 19 && y >= 0 && y < 19)
             return new Pair<>(x, y);
-        throw new UnsupportedOperationException("Out of bounds");
+//        return null;
     }
 
     private static void printList(List<List<Integer>> list) {

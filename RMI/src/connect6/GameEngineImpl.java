@@ -71,6 +71,7 @@ public class GameEngineImpl implements GameEngine {
         synchronized (obj) {
             int x = point.getKey();
             int y = point.getValue();
+            if(!(x >= 0 && x < 19 && y >= 0 && y < 19)) return false;
             Integer a = list.get(x).get(y);
             if (a != 0) return false;
             if (id.equals(BLACK)) {
@@ -152,21 +153,29 @@ public class GameEngineImpl implements GameEngine {
     @Override
     public List<List<Integer>> waitForOpponentTurn(String id) {
         try {
-            if (id.equals(BLACK)) {
-                System.out.println("Waiting for Player WHITE");
-                while (whiteTurnsCount != blackTurnsCount + 1 && winnerId != null) {
-                    Thread.sleep(100);
-                }
-            } else {
-                System.out.println("Waiting for Player BLACK");
-                while ( whiteTurnsCount + 1 != blackTurnsCount && winnerId != null) {
-                    Thread.sleep(100);
-                }
+            while ((!id.equals(whoseTurn()) && winnerId == null)) {
+                Thread.sleep(100);
+
             }
+//            if (id.equals(BLACK)) {
+//                System.out.println("Waiting for Player WHITE");
+//                while (whiteTurnsCount <= blackTurnsCount + 1 && winnerId == null) {
+//                    Thread.sleep(100);
+//                }
+//            } else {
+//                System.out.println("Waiting for Player BLACK");
+//                while ( whiteTurnsCount + 1 > blackTurnsCount && winnerId == null) {
+//                    Thread.sleep(100);
+//                }
+//            }
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
         return list;
+    }
+
+    private String whoseTurn() {
+        return (whiteTurnsCount + 1 == blackTurnsCount || whiteTurnsCount == blackTurnsCount) && blackTurnsCount != 0 ? WHITE : BLACK;
     }
 
 }
