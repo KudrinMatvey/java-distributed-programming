@@ -51,7 +51,6 @@ public class Connect6Client {
                 System.out.println("Player " + gameEngine.didAnyoneWin(id) + " won");
                 return;
             }
-            ;
             System.out.print("You made your first turn, make the second one x: ");
             x = sc.nextInt();
             System.out.println("y: ");
@@ -68,9 +67,7 @@ public class Connect6Client {
     }
 
     private static Pair<Integer, Integer> makePoint(int x, int y) {
-//        if (x >= 0 && x < 19 && y >= 0 && y < 19)
             return new Pair<>(x, y);
-//        return null;
     }
 
     private static void printList(List<List<Integer>> list) {
@@ -90,8 +87,6 @@ public class Connect6Client {
             GameEngine stub = (GameEngine) registry.lookup("GameEngine");
             System.out.println(stub);
             Connect6Client connect6Client = new Connect6Client(stub.getId(), stub);
-//            System.out.println("response:\nSum="+ stub.summa(190,7));
-
         } catch (Exception e) {
             System.err.println("Client exception: " + e.toString());
             e.printStackTrace();
