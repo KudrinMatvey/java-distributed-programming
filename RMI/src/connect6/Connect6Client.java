@@ -2,6 +2,7 @@ package connect6;
 
 import javafx.util.Pair;
 
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -18,9 +19,13 @@ public class Connect6Client {
 
     private static List<List<Integer>> list = null;
 
-    private Connect6Client(String id, GameEngine gameEngine) throws RemoteException {
-        this.id = id;
-        this.gameEngine = gameEngine;
+    private Connect6Client() throws RemoteException, NotBoundException {
+        Integer host = 2020;
+        Registry registry = LocateRegistry.getRegistry(host);
+        GameEngine stub = (GameEngine) registry.lookup("GameEngine");
+        System.out.println(stub);
+        this.id = stub.getId();
+        this.gameEngine = stub;
         Scanner sc = new Scanner(System.in);
         System.out.println("I am player:" + id);
 
@@ -81,12 +86,8 @@ public class Connect6Client {
 
     public static void main(String[] args) {
 
-        Integer host = 2020;
         try {
-            Registry registry = LocateRegistry.getRegistry(host);
-            GameEngine stub = (GameEngine) registry.lookup("GameEngine");
-            System.out.println(stub);
-            Connect6Client connect6Client = new Connect6Client(stub.getId(), stub);
+            Connect6Client connect6Client = new Connect6Client();
         } catch (Exception e) {
             System.err.println("Client exception: " + e.toString());
             e.printStackTrace();
