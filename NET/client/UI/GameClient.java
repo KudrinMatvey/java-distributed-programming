@@ -10,6 +10,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class GameClient {
     private JPanel rootPanel;
@@ -19,12 +21,14 @@ public class GameClient {
     private JButton startGameButton;
     private DataOutputStream dos;
     private int squarePixelSize = 30;
-    private int [][] gameMap;
-    private final int uniqueClientId = (int)System.currentTimeMillis();
+    private int[][] gameMap;
+    private final int uniqueClientId = (int) System.currentTimeMillis();
     private int turnCount = 0;
     private StringBuilder currentChangedCells = new StringBuilder();
-    private int baseX = 5;
-    private int baseY = 5;
+    Map<Integer, Integer> map;
+    private int isInited = 0;
+    Integer lastX = null;
+    Integer lastY = null;
 
     public GameClient() {
         gameMap = new int[15][];
@@ -34,6 +38,11 @@ public class GameClient {
                 gameMap[i][j] = 0;
             }
         }
+        map = new HashMap<>();
+        map.put(1, 0);
+        map.put(2, 0);
+        map.put(3, 0);
+        map.put(4, 0);
         EventQueue.invokeLater(new Runnable() {
             @Override
             public void run() {
@@ -49,13 +58,25 @@ public class GameClient {
         });
     }
 
+
+    // todo
+    private void initFleet() {
+
+        map.values();
+//        map.add
+    }
+
     private void createUIComponents() {
         connectionStatusLabel.setVisible(false);
         gameField.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                connectionStatusLabel.setText("Mouse event: " + getSquareMapCoordinate(e.getX()) + " " + getSquareMapCoordinate(e.getY()));
-                if(turnCount < 5 && turnButton.isEnabled()) {
+//                connectionStatusLabel.setText("Mouse event: " + getSquareMapCoordinate(e.getX()) + " " + getSquareMapCoordinate(e.getY()));
+                System.out.println("kek");
+                if (isInited != 15) {
+                    initFleetPosition(e);
+
+                } else if (turnCount < 5 && turnButton.isEnabled()) {
                     Graphics graphics = gameField.getGraphics();
                     redrawGrid(graphics);
                     int x = getSquareMapCoordinate(e.getX());
@@ -76,14 +97,14 @@ public class GameClient {
                 System.out.println("Ok from server");
                 updateGameField(gameField.getGraphics());
                 drawAvailableCells(gameField.getGraphics());
-             }
+            }
         });
         gameField.addPropertyChangeListener(SharedTag.MODEL_UPDATE, new PropertyChangeListener() {
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
                 System.out.println("Model is updated from server");
                 turnButton.setEnabled(true);
-                if(turnButton.isVisible()) {
+                if (turnButton.isVisible()) {
                     updateGameField(gameField.getGraphics());
                     drawAvailableCells(gameField.getGraphics());
                 }
@@ -97,7 +118,7 @@ public class GameClient {
             public void mouseClicked(MouseEvent e) {
                 turnButton.setEnabled(false);
                 try {
-                    if(currentChangedCells.length() != 0) {
+                    if (currentChangedCells.length() != 0) {
                         currentChangedCells.deleteCharAt(currentChangedCells.length() - 1);
                     }
                     getDos().writeUTF(SharedTag.UPDATE_MAP_KEY + " "
@@ -127,6 +148,52 @@ public class GameClient {
         });
     }
 
+    private void initFleetPosition(MouseEvent e) {
+        if (lastX == null && lastY == null) {
+            lastX = getSquareMapCoordinate(e.getX());
+            lastY = getSquareMapCoordinate(e.getY());
+            Graphics graphics = gameField.getGraphics();
+            redrawGrid(graphics);
+        } else {
+            Graphics graphics = gameField.getGraphics();
+            int x = getSquareMapCoordinate(e.getX());
+            int y = getSquareMapCoordinate(e.getY());
+            if (lastY - y < 5 && lastX == x) {
+                int length = Math.abs(lastY - y);
+                if (map.get(length) < 5 - (length)) {
+                    if (5 - length == map.get(length)) {
+                        isInited += Math.pow(2, map.get(length) - 1);
+                    }
+                    for (int i = 0; i < length; i++) {
+                        gameMap[x][(lastY < y ? lastY : y) + i] = uniqueClientId;
+                        updateGameField(graphics, x, (lastY < y ? lastY : y) + i, true);
+                    }
+                    map.replace(length, map.get(length) + 1);
+                } else {
+                    System.err.println("already taken");
+                    lastX = lastY = null;
+                }
+            } else if (lastX - x < 5 && lastY == y) {
+                int length = Math.abs(lastX - x);
+                if (map.get(length) < 5 - (length)) {
+                    if (5 - length == map.get(length)) {
+                        isInited += Math.pow(2, map.get(length) - 1);
+                    }
+                    for (int i = 0; i < length; i++) {
+                        gameMap[(lastX < x ? lastX : x) + i][y] = uniqueClientId;
+                        updateGameField(graphics, (lastX < x ? lastX : x) + i, y, true);
+                    }
+                    map.replace(length, map.get(length) + 1);
+                } else {
+                    System.err.println("already taken");
+                    lastX = lastY = null;
+                }
+            } else {
+                lastX = lastY = null;
+            }
+        }
+    }
+
     private void updateGameField(Graphics graphics) {
         redrawGrid(graphics);
         for (int i = 0; i < gameMap.length; i++) {
@@ -142,31 +209,31 @@ public class GameClient {
 
     private boolean updateGameField(Graphics graphics, int xCoordinate, int yCoordinate, boolean fromClick) {
         graphics.setColor(new Color(115, 231, 118));
-        graphics.fillRect(xCoordinate * squarePixelSize + 1, yCoordinate * squarePixelSize + 1, squarePixelSize - 1 , squarePixelSize - 1);
+        graphics.fillRect(xCoordinate * squarePixelSize + 1, yCoordinate * squarePixelSize + 1, squarePixelSize - 1, squarePixelSize - 1);
         int currentCellValue = gameMap[xCoordinate][yCoordinate];
-        if(currentCellValue == uniqueClientId) {
+        if (currentCellValue == uniqueClientId) {
             graphics.setColor(Color.RED);
-            graphics.fillRect(xCoordinate * squarePixelSize + 1, yCoordinate * squarePixelSize + 1, squarePixelSize - 1 , squarePixelSize - 1);
+            graphics.fillRect(xCoordinate * squarePixelSize + 1, yCoordinate * squarePixelSize + 1, squarePixelSize - 1, squarePixelSize - 1);
             return false;
         } else if (currentCellValue == -uniqueClientId) {
             graphics.setColor(Color.RED);
-            graphics.fillOval(xCoordinate * squarePixelSize + 1, yCoordinate * squarePixelSize + 1, squarePixelSize - 1 , squarePixelSize - 1);
-        } else if (currentCellValue < 0 && currentCellValue != -uniqueClientId){
+            graphics.fillOval(xCoordinate * squarePixelSize + 1, yCoordinate * squarePixelSize + 1, squarePixelSize - 1, squarePixelSize - 1);
+        } else if (currentCellValue < 0 && currentCellValue != -uniqueClientId) {
             graphics.setColor(Color.BLUE);
-            graphics.fillOval(xCoordinate * squarePixelSize + 1, yCoordinate * squarePixelSize + 1, squarePixelSize - 1 , squarePixelSize - 1);
+            graphics.fillOval(xCoordinate * squarePixelSize + 1, yCoordinate * squarePixelSize + 1, squarePixelSize - 1, squarePixelSize - 1);
         } else if (currentCellValue == 0) {
-            if(fromClick) {
+            if (fromClick) {
                 graphics.setColor(Color.RED);
                 gameMap[xCoordinate][yCoordinate] = uniqueClientId;
-                graphics.fillRect(xCoordinate * squarePixelSize + 1, yCoordinate * squarePixelSize + 1, squarePixelSize - 1 , squarePixelSize - 1);
+                graphics.fillRect(xCoordinate * squarePixelSize + 1, yCoordinate * squarePixelSize + 1, squarePixelSize - 1, squarePixelSize - 1);
             } else return false;
         } else if (fromClick) {
             gameMap[xCoordinate][yCoordinate] = -uniqueClientId;
             graphics.setColor(Color.RED);
-            graphics.fillOval(xCoordinate * squarePixelSize + 1, yCoordinate * squarePixelSize + 1, squarePixelSize - 1 , squarePixelSize - 1);
+            graphics.fillOval(xCoordinate * squarePixelSize + 1, yCoordinate * squarePixelSize + 1, squarePixelSize - 1, squarePixelSize - 1);
         } else {
-            graphics.setColor(Color.BLUE);
-            graphics.fillRect(xCoordinate * squarePixelSize + 1, yCoordinate * squarePixelSize + 1, squarePixelSize - 1 , squarePixelSize - 1);
+//            graphics.setColor(Color.BLUE);
+//            graphics.fillRect(xCoordinate * squarePixelSize + 1, yCoordinate * squarePixelSize + 1, squarePixelSize - 1 , squarePixelSize - 1);
         }
         return true;
     }
@@ -177,19 +244,19 @@ public class GameClient {
 
     public void updateMap(int[][] newMap) {
         gameMap = newMap;
-        gameMap[baseX][baseY] = uniqueClientId;
+//        gameMap[baseX][baseY] = uniqueClientId;
     }
 
     private void redrawGrid(Graphics graphics) {
         graphics.setColor(Color.BLACK);
-        for (int i = squarePixelSize; i < gameField.getWidth(); i+=squarePixelSize) {
+        for (int i = squarePixelSize; i < gameField.getWidth(); i += squarePixelSize) {
             graphics.drawLine(0, i, gameField.getWidth(), i);
             graphics.drawLine(i, 0, i, gameField.getHeight());
         }
     }
 
     private int getSquareMapCoordinate(int x) {
-        return x/squarePixelSize;
+        return x / squarePixelSize;
     }
 
     public JPanel getGameField() {
@@ -212,20 +279,21 @@ public class GameClient {
         g.setColor(Color.RED);
         for (int i = 0; i < gameMap.length; i++) {
             for (int j = 0; j < gameMap[i].length; j++) {
-                if(gameMap[i][j] == uniqueClientId) {
-                    checkBoundsAndDrawAvailableCells(g, i, j);
-                } else if(gameMap[i][j] == -uniqueClientId) {
-                    boolean turn = resolveAbilityToTurn(i, j);
-                    if(turn) {
-                        checkBoundsAndDrawAvailableCells(g, i, j);
-                    }
-                }
+                // @todo
+//                if(gameMap[i][j] == uniqueClientId) {
+//                    checkBoundsAndDrawAvailableCells(g, i, j);
+//                } else if(gameMap[i][j] == -uniqueClientId) {
+//                    boolean turn = resolveAbilityToTurn(i, j);
+//                    if(turn) {
+//                        checkBoundsAndDrawAvailableCells(g, i, j);
+//                    }
+//                }
             }
         }
     }
 
     private void checkBoundsAndDrawAvailableCells(Graphics g, int i, int j) {
-        for(int k = -1; k < 2; k++) {
+        for (int k = -1; k < 2; k++) {
             for (int l = -1; l < 2; l++) {
                 int x = i + k;
                 int y = j + l;
@@ -239,17 +307,17 @@ public class GameClient {
     }
 
     private boolean resolveAbilityToTurn(int i, int j) {
-        if(i == baseX && j == baseY) {
-            return true;
-        }
-        for(int k = -1; k < 2; k++) {
+//        if (i == baseX && j == baseY) {
+//            return true;
+//        }
+        for (int k = -1; k < 2; k++) {
             for (int l = -1; l < 2; l++) {
                 int x = i + k;
                 int y = j + l;
                 if (x >= 0 && y >= 0 && x < gameMap.length && y < gameMap.length) {
                     if (gameMap[x][y] == uniqueClientId) {
                         gameMap[x][y] = 1;
-                        if(resolveAbilityToTurn(x, y)) {
+                        if (resolveAbilityToTurn(x, y)) {
                             gameMap[x][y] = uniqueClientId;
                             return true;
                         } else {
@@ -257,7 +325,7 @@ public class GameClient {
                         }
                     } else if (gameMap[x][y] == -uniqueClientId) {
                         gameMap[x][y] = -1;
-                        if(resolveAbilityToTurn(x, y)) {
+                        if (resolveAbilityToTurn(x, y)) {
                             gameMap[x][y] = -uniqueClientId;
                             return true;
                         } else {
@@ -270,17 +338,9 @@ public class GameClient {
         return false;
     }
 
-    public void setBaseX(int baseX) {
-        this.baseX = baseX;
-    }
-
-    public void setBaseY(int baseY) {
-        this.baseY = baseY;
-    }
-
-    public void fulfillBaseCell () {
-        currentChangedCells.append(baseX).append(SharedTag.COORDINATE_SEPARATOR)
-                .append(baseY).append(SharedTag.COORDINATE_SEPARATOR)
-                .append(uniqueClientId).append(SharedTag.CELL_SEPARATOR);
-    }
+//    public void fulfillBaseCell () {
+//        currentChangedCells.append(baseX).append(SharedTag.COORDINATE_SEPARATOR)
+//                .append(baseY).append(SharedTag.COORDINATE_SEPARATOR)
+//                .append(uniqueClientId).append(SharedTag.CELL_SEPARATOR);
+//    }
 }
