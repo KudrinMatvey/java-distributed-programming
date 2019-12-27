@@ -16,6 +16,7 @@ public class TCPClient {
         Socket s = null;
         try {
             int serverPort = 7896;
+            // todo: подключение сокета
             s = new Socket(InetAddress.getLocalHost(), serverPort);
             ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
             System.out.println("OUT");
@@ -59,9 +60,10 @@ public class TCPClient {
 
         while (true) {
             Action nextAction = (Action) in.readObject();
-            System.out.println(nextAction.toString());
+//            System.out.println(nextAction.toString());
             switch (nextAction.getType()) {
                 case WAITING_FOR_YOUR_TURN:
+                    System.out.println("Waiting for you");
                     out.writeObject(new Action(getTurnCoordinates(map)));
                     break;
                 case WIN:
@@ -73,7 +75,8 @@ public class TCPClient {
                 case INVALID_TURN:
                     System.err.println("you made wrong turn");
                     break;
-                case ATTEMPT_SUCCESSFUL: markPoint(true, white , nextAction.getAttemptCoordinates(), map); break;
+                case ATTEMPT_SUCCESSFUL:
+                    System.out.println("Your attempt was successful"); markPoint(true, white, nextAction.getAttemptCoordinates(), map); break;
                 case ATTEMPT_OPPONENT_SUCCESSFUL: markPoint(false, white, nextAction.getAttemptCoordinates(), map); break;
                 default:
                     System.err.println("something wrong" + nextAction.toString());
@@ -87,15 +90,16 @@ public class TCPClient {
 
 
     private static Pair<Integer, Integer> getTurnCoordinates(List<List<PointFlag>> map) {
-        StringBuilder stringBuilder = new StringBuilder("Current map state is :\n ");
+        StringBuilder stringBuilder = new StringBuilder("Current map state is :\n");
         for (List<PointFlag> pointFlagList : map) {
             for (PointFlag pointFlag : pointFlagList) {
                 switch (pointFlag) {
-                    case EMPTY: stringBuilder.append(' '); break;
+                    case EMPTY: stringBuilder.append('.'); break;
                     case WHITE: stringBuilder.append('w'); break;
                     case BLACK: stringBuilder.append('b'); break;
                 }
             }
+            stringBuilder.append('\n');
         }
         System.out.println(stringBuilder);
 

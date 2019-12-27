@@ -28,6 +28,7 @@ class Connection extends Thread {
         try {
             //Creating connection with player white
             clientSocketWhite = aClientSocketWhite;
+            // todo: создание входных и выходных потоков
             inWhite = new ObjectInputStream(clientSocketWhite.getInputStream());
             System.out.println("white input stream created");
             outWhite = new ObjectOutputStream(clientSocketWhite.getOutputStream());
@@ -85,7 +86,8 @@ class Connection extends Thread {
                             map.get(whiteAttemptX).set(whiteAttemptY, PointFlag.WHITE);
                             whiteTurn = false;
                             run = !checkIfSomeoneWon(map, true, whiteAttemptX, whiteAttemptY);
-                            run = !checkIfSomeoneWon(map, true, whiteAttemptX, whiteAttemptY);
+                            outWhite.writeObject(new Action(Flag.ATTEMPT_SUCCESSFUL, new Pair<Integer, Integer>(whiteAttemptX, whiteAttemptY)));
+                            outBlack.writeObject(new Action(Flag.ATTEMPT_OPPONENT_SUCCESSFUL, new Pair<Integer, Integer>(whiteAttemptX, whiteAttemptY)));
                         } else {
                             System.err.printf("Invalid turn");
                         }
@@ -105,6 +107,8 @@ class Connection extends Thread {
                             map.get(blackAttemptX).set(blackAttemptY, PointFlag.BLACK);
                             blackTurn = false;
                             run = !checkIfSomeoneWon(map, false, blackAttemptX, blackAttemptY);
+                            outBlack.writeObject(new Action(Flag.ATTEMPT_SUCCESSFUL, new Pair<>(blackAttemptX, blackAttemptY)));
+                            outWhite.writeObject(new Action(Flag.ATTEMPT_OPPONENT_SUCCESSFUL, new Pair<>(blackAttemptX, blackAttemptY)));
                         } else {
                             System.err.printf("Invalid turn");
                         }

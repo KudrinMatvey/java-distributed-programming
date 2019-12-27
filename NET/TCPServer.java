@@ -10,6 +10,7 @@ public class TCPServer {
             int serverPort = 7896; // the server port
             ServerSocket listenSocket = new ServerSocket(serverPort); // new server port generated
             while (true) {
+                // todo: подключение клиентов
                 clientSocket1 = listenSocket.accept(); // listen for new connection
                 System.out.println("Player 1 connected");
                 clientSocket2 = listenSocket.accept(); // listen for new connection

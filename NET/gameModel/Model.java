@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+// todo: implements Serializable для того чтобы можно было отправлять обьект
 public class Model implements Serializable {
     public List<List<Integer>> getOwnMap() {
         return ownMap;
