@@ -21,10 +21,14 @@ public class TCPClient {
             ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
             System.out.println("OUT");
             ObjectInputStream in = new ObjectInputStream(s.getInputStream());
-            Model m = new Model(10);
+            Object o = new Object();
             System.out.println("IN");
-            out.writeObject(m);
+
+            // todo: пример отправки writeobject
+            out.writeObject(o);
             System.out.println("wrote");
+
+            // todo: пример чтения readobject
             String str = (String) in.readObject();
             System.out.println(str);
             startGame(in, out);
